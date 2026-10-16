@@ -1,0 +1,13 @@
+{
+  "name": "@innogram/notifications-consumer",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo \"Notifications implementation pending\"",
+    "build": "echo \"Build not configured yet\"",
+    "test": "echo \"Tests not configured yet\"",
+    "lint": "echo \"Lint not configured yet\"",
+    "type-check": "echo \"Type checking not configured yet\"",
+    "clean": "echo \"Nothing to clean yet\""
+  }
+}

@@ -41,3 +41,6 @@ temp/
 .storybook-out/
 *.tgz
 .yarn-integrity
+
+.turbo
+*.tsbuildinfo

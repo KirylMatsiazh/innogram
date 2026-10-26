@@ -1,10 +1,11 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { User } from "./user.entity.js";
+import { randomUUID } from "crypto";
 
 @Entity({ schema: "main", name: "chats" })
 export class Chat {
     @PrimaryColumn({ type: "varchar", length: 36 })
-    id: string;
+    id: string = randomUUID();
 
     @Column({ type: "varchar", length: 100 })
     name: string;

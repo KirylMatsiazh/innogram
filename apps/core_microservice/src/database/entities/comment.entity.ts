@@ -2,11 +2,12 @@ import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn 
 import { Post } from "./post.entity.js";
 import { Profile } from "./profile.entity.js";
 import { User } from "./user.entity.js";
+import { randomUUID } from "crypto";
 
 @Entity({ schema: "main", name: "comments" })
 export class Comment {
     @PrimaryColumn({ type: "varchar", length: 36 })
-    id: string;
+    id: string = randomUUID();
 
     @ManyToOne(() => Post, { nullable: false, onDelete: "CASCADE" })
     @JoinColumn({ name: "post_id" })

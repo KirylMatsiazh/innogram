@@ -1,10 +1,11 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { User } from "./user.entity.js";
+import { randomUUID } from "crypto";
 
 @Entity({ schema: "auth", name: "accounts" })
 export class Account {
     @PrimaryColumn({ type: "varchar", length: 36 })
-    id: string;
+    id: string = randomUUID();
 
     @ManyToOne(() => User, { nullable: false, onDelete: "CASCADE" })
     @JoinColumn({ name: "user_id" })

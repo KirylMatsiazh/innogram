@@ -23,7 +23,8 @@
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
     "typeorm": "typeorm-ts-node-esm",
     "typeorm:migration": "typeorm-ts-node-esm migration:run -d ./src/database/datasource.ts",
-    "typeorm:migration:revert": "typeorm-ts-node-esm migration:revert -d ./src/database/datasource.ts"
+    "typeorm:migration:revert": "typeorm-ts-node-esm migration:revert -d ./src/database/datasource.ts",
+    "typeorm:migration:generate": "typeorm-ts-node-esm migration:generate -d ./src/database/datasource.ts"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",

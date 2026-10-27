@@ -17,44 +17,26 @@ export class Message {
         type: "varchar",
         length: 36,
     })
-    id: string = randomUUID();                  //VARCHAR(36) PRIMARY KEY, -- ID generated in application code
+    id: string = randomUUID();
 
-    @ManyToOne(() => Chat, {onDelete: "CASCADE"})
+    @ManyToOne(() => Chat, { nullable: false, onDelete: "CASCADE" })
     @JoinColumn({ name: "chat_id" })
-    @Column({
-        name: "chat_id",
-        type: "varchar",
-        length: 36,
-        nullable: false,
-    })
-    chatId: string;                     //VARCHAR(36) NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
+    chat: Chat;
 
-    @ManyToOne(() => Profile, {onDelete: "CASCADE"})
+    @ManyToOne(() => Profile, { nullable: false, onDelete: "CASCADE" })
     @JoinColumn({ name: "profile_id" })
-    @Column({
-        name: "profile_id",
-        type: "varchar",
-        length: 36,
-        nullable: false,
-    })
-    profileId: string;                  //VARCHAR(36) NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    profile: Profile;
 
     @Column({
         name: "content",
         type: "text",
         nullable: false,
     })
-    content: string;                     //TEXT NOT NULL,
+    content: string;
 
-    @ManyToOne(() => Message, {onDelete: "SET NULL"})
+    @ManyToOne(() => Message, { nullable: true, onDelete: "SET NULL" })
     @JoinColumn({ name: "reply_to_message_id" })
-    @Column({
-        name: "reply_to_message_id",
-        type: "varchar",
-        length: 36,
-        nullable: true,
-    })
-    replyToMessageId: string | null;                     //VARCHAR(36) REFERENCES messages(id) ON DELETE SET NULL,
+    replyToMessage: Message | null;
 
     @Column({
         name: "is_edited",
@@ -62,7 +44,7 @@ export class Message {
         nullable: false,
         default: false,
     })
-    isEdited: boolean = false;                   //BOOLEAN NOT NULL DEFAULT false,
+    isEdited: boolean = false;
 
     @Column({
         name: "created_at",
@@ -70,39 +52,28 @@ export class Message {
         nullable: false,
         default: () => "CURRENT_TIMESTAMP",
     })
-    createdAt: Date;                  //TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    createdAt: Date;
 
-    @ManyToOne(() => User)
+    @ManyToOne(() => User, { nullable: false })
     @JoinColumn({ name: "created_by" })
-    @Column({
-        name: "created_by",
-        type: "varchar",
-        length: 36,
-        nullable: false,
-    })
-    createdBy: string                  //VARCHAR(36) NOT NULL REFERENCES users(id),
+    createdBy: User;
 
     @Column({
         name: "updated_at",
         type: "timestamp",
         nullable: false,
     })
-    updatedAt: Date                 //TIMESTAMP NOT NULL,
+    updatedAt: Date;
 
-    @ManyToOne(() => User)
+    @ManyToOne(() => User, { nullable: true })
     @JoinColumn({ name: "updated_by" })
-    @Column({
-        name: "updated_by",
-        type: "varchar",
-        length: 36,
-        nullable: true,
-    })
-    updatedBy: string | null;                  //VARCHAR(36) REFERENCES users(id),
+    updatedBy: User | null;
 
     @Column({
         name: "deleted",
+        type: "boolean",
         nullable: false,
         default: false,
     })
-    deleted: boolean = false;                     //BOOLEAN NOT NULL DEFAULT FALSE
+    deleted: boolean = false;
 }

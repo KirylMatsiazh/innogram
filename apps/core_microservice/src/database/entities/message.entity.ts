@@ -5,6 +5,7 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
+  UpdateDateColumn,
 } from "typeorm";
 import { Chat } from "./chat.entity.js";
 import { Profile } from "./profile.entity.js";
@@ -19,8 +20,6 @@ export class Message {
     })
     id: string = randomUUID();                  //VARCHAR(36) PRIMARY KEY, -- ID generated in application code
 
-    @ManyToOne(() => Chat, {onDelete: "CASCADE"})
-    @JoinColumn({ name: "chat_id" })
     @Column({
         name: "chat_id",
         type: "varchar",
@@ -29,8 +28,6 @@ export class Message {
     })
     chatId: string;                     //VARCHAR(36) NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
 
-    @ManyToOne(() => Profile, {onDelete: "CASCADE"})
-    @JoinColumn({ name: "profile_id" })
     @Column({
         name: "profile_id",
         type: "varchar",
@@ -46,8 +43,6 @@ export class Message {
     })
     content: string;                     //TEXT NOT NULL,
 
-    @ManyToOne(() => Message, {onDelete: "SET NULL"})
-    @JoinColumn({ name: "reply_to_message_id" })
     @Column({
         name: "reply_to_message_id",
         type: "varchar",
@@ -72,8 +67,6 @@ export class Message {
     })
     createdAt: Date;                  //TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    @ManyToOne(() => User)
-    @JoinColumn({ name: "created_by" })
     @Column({
         name: "created_by",
         type: "varchar",
@@ -82,11 +75,11 @@ export class Message {
     })
     createdBy: string                  //VARCHAR(36) NOT NULL REFERENCES users(id),
 
-    @Column({
-        name: "updated_at",
-        type: "timestamp",
-        nullable: false,
-    })
+    @UpdateDateColumn({
+    name: "updated_at",
+    type: "timestamp",
+    nullable: false,
+})
     updatedAt: Date                 //TIMESTAMP NOT NULL,
 
     @ManyToOne(() => User)

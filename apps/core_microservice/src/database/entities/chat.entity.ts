@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { User } from "./user.entity.js";
 import { randomUUID } from "crypto";
 
@@ -23,7 +23,7 @@ export class Chat {
     @JoinColumn({ name: "created_by" })
     createdBy: User;
 
-    @Column({ name: "updated_at", type: "timestamp" })
+    @UpdateDateColumn({ name: "updated_at", type: "timestamp" })
     updatedAt: Date;
 
     @ManyToOne(() => User, { nullable: true })

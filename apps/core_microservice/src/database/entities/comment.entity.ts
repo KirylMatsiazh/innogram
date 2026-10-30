@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn } from "typeorm";
 import { Post } from "./post.entity.js";
 import { Profile } from "./profile.entity.js";
 import { User } from "./user.entity.js";
@@ -31,7 +31,7 @@ export class Comment {
     @JoinColumn({ name: "created_by" })
     createdBy: User;
 
-    @Column({ name: "updated_at", type: "timestamp" })
+    @UpdateDateColumn({ name: "updated_at", type: "timestamp" })
     updatedAt: Date;
 
     @ManyToOne(() => User, { nullable: true })

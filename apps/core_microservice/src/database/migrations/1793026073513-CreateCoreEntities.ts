@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import type { MigrationInterface, QueryRunner } from "typeorm";
 
 export class CreateCoreEntities1793026073513 implements MigrationInterface {
     name = 'CreateCoreEntities1793026073513'

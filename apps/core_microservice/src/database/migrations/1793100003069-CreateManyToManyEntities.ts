@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import type { MigrationInterface, QueryRunner } from "typeorm";
 
 export class CreateManyToManyEntities1793100003069 implements MigrationInterface {
     name = 'CreateManyToManyEntities1793100003069'

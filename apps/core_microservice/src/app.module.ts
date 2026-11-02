@@ -9,13 +9,19 @@ import { PostsModule } from './posts/posts.module.js';
 import { CommentsModule } from './comments/comments.module.js';
 import { ChatsModule } from './chats/chats.module.js';
 import { NotificationsModule } from './notifications/notifications.module.js';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
     ConfigModule.forRoot({envFilePath: [
-    '../../.env',
-    '.env',
-  ],}),
+      '../../.env',
+      '.env',
+    ],}),
+    ThrottlerModule.forRoot([{
+      ttl: 60000, // 60 seconds
+      limit: 100,  // max 100 requests per IP per minute
+    }]),
     DatabaseModule,
     AuthModule,
     UsersModule,
@@ -25,6 +31,12 @@ import { NotificationsModule } from './notifications/notifications.module.js';
     NotificationsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    { 
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    }
+  ],
 })
 export class AppModule {}

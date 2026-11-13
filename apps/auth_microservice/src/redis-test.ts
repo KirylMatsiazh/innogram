@@ -1,7 +1,7 @@
 import redisClient, {
     connectRedis,
     disconnectRedis
-} from './config/redis.ts';
+} from './config/redis.js';
 
 async function testRedis() {
     try {

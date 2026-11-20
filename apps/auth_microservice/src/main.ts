@@ -4,9 +4,15 @@ import { RegisterDTO } from './dto/register.dto.js';
 import { validateBody } from './middleware/validation.middleware.js';
 import { errorMiddleware } from './middleware/error.middleware.js';
 import { LoginDTO } from './dto/login.dto.js';
+import { clientId, googleClient } from './config/google.js';
+import { AppError } from './error/app-error.js';
+import cookieParser from 'cookie-parser';
+import { randomBytes } from 'crypto';
 
 const app: Express = express();
 app.use(express.json());    //for parsing json from body
+
+app.use(cookieParser());
 
 app.post(
   '/register',
@@ -36,6 +42,87 @@ app.post(
     });
   }
 );
+
+app.get(
+  '/auth/google',
+  (req, res) => {
+    const state = randomBytes(32).toString('hex');
+    const url = googleClient.generateAuthUrl({
+      scope: ['openid', 'email', 'profile'],
+      prompt: 'select_account',
+      state: state
+    });
+
+    res.cookie('oauth_state', state, {
+      httpOnly: true,
+      sameSite: 'lax',
+      maxAge: 10 * 60 * 1000,  //10 minutes
+      secure: process.env.NODE_ENV === 'production'
+    });
+
+    res.redirect(url);
+  }
+)
+
+app.get(
+  '/auth/google/callback',
+  async (req, res) => {
+    const {code, error} = req.query;
+
+    if(error){
+      throw new AppError(400, 'Google sign in was canceled or denied');
+    }
+
+    if(!req.query.state || !req.cookies.oauth_state || req.query.state !== req.cookies.oauth_state){
+      throw new AppError(400, 'Invalid or missing OAuth state');
+    }
+    res.clearCookie('oauth_state')
+
+    if(!code || typeof code !== 'string'){
+      throw new AppError(400, 'Missing authorisation code');
+    }
+
+    try{
+      var tokens = (await googleClient.getToken(code)).tokens;
+    }
+    catch{
+      throw new AppError(400, 'Invalid or expired authorization code');
+    }
+
+    const idToken = tokens.id_token;
+    if(!idToken){
+      throw new AppError(502, 'Missing id token');
+    } 
+    else{
+      try{
+        var ticket = await googleClient.verifyIdToken({
+          idToken: idToken,
+          audience: clientId
+        })
+      }
+      catch{
+        throw new AppError(401, 'Invalid Google identity token');
+      }
+
+    }
+
+    const payload = ticket.getPayload();
+    if(!payload || !payload.sub || !payload.email){
+      throw new AppError(502, 'Missing or invalid ticket payload');
+    }
+    if(!payload.email_verified){
+      throw new AppError(403, 'Email not verified');
+    }
+
+    const result = await authenticationService.signInWithGoogle({ sub: payload.sub, email: payload.email });
+
+    res.json({ 
+      message: 'Signed in with Google', 
+      user: result
+    })
+  }
+);
+
 
 app.use(errorMiddleware);
 

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { LoginResponseDTO } from "../dto/login-response.dto.js";
 import { LoginDTO } from "../dto/login.dto.js";
 import { RegisterDTO } from "../dto/register.dto.js";
@@ -19,17 +20,18 @@ class AuthenticationService{
         await userStore.create({
             email: dto.email,
             username: dto.username,
-            passwordHash: passwordHash
+            passwordHash: passwordHash,
+            provider: 'local'
         });
     }
 
     async login(dto: LoginDTO): Promise<LoginResponseDTO>{
         const user = await userStore.findByEmail(dto.email);
 
-        if(!user){
-            await passwordUtil.comparePassword(dto.password, dummyHash) //prevents timing difference
-            throw new AppError(401, "Invalid credentials");
-        } else if (!await passwordUtil.comparePassword(dto.password, user.passwordHash)){
+        const hashToCompare = user?.passwordHash ?? dummyHash;
+        const compareResult = await passwordUtil.comparePassword(dto.password, hashToCompare);
+
+        if(!user || !user.passwordHash || !compareResult){
             throw new AppError(401, "Invalid credentials");
         }
 
@@ -38,6 +40,39 @@ class AuthenticationService{
             username: user.username,
             id: user.userId
         }
+    }
+
+    //-------------------------GOOGLE---------------------------------
+
+    async signInWithGoogle(signInData: {sub: string, email: string}): Promise<LoginResponseDTO>{
+        const lowerCaseEmail = signInData.email.toLowerCase();
+        const googleUser = await userStore.findByProvider('google', signInData.sub);
+
+        if(googleUser){
+            return {
+                email: googleUser.email,
+                username: googleUser.username,
+                id: googleUser.userId
+            }
+        }
+        if(await userStore.findByEmail(lowerCaseEmail)){
+            throw new AppError(409, 'An account with this email already exists. Sign in with your password.')
+        }
+
+        const username = lowerCaseEmail.split('@')[0].replace(/[^a-zA-Z0-9_.]/g, '').substring(0, 20) + `_${randomUUID().slice(0, 6)}`;
+        const newUser = await userStore.create({
+            email: lowerCaseEmail,
+            username: username,
+            provider: 'google',
+            providerId: signInData.sub
+        }) 
+
+        return {
+            email: newUser.email,
+            username: newUser.username,
+            id: newUser.userId
+        }
+        
     }
 
 }

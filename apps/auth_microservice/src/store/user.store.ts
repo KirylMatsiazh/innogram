@@ -1,24 +1,32 @@
 import { randomUUID, UUID } from "crypto";
 import { AppError } from "../error/app-error.js";
 
+//IN-MEMORY DATA
 class InMemoryUserProfile{
     constructor(
         email: string,
         username: string,
-        passwordHash: string,
+        provider: 'local' | 'google' = 'local',
+        passwordHash?: string,
+        providerId?: string
     ){
         this.email = email;
         this.username = username;
         this.passwordHash = passwordHash;
         this.userId = randomUUID();
+        this.provider = provider;
+        this.providerId = providerId;
     }
 
     email: string;
     username: string;
-    passwordHash: string;
+    passwordHash?: string;
     userId: UUID;
+    provider: 'local' | 'google';
+    providerId?: string;
 }
 
+//IN-MEMORY STORAGE
 class InMemoryUserStore {
     constructor(){
         this.storage = new Map<string, InMemoryUserProfile>();
@@ -36,7 +44,27 @@ class InMemoryUserStore {
         return result;
     }
 
-    async create(data: {email: string, username: string, passwordHash: string}): Promise<InMemoryUserProfile>{
+    //FIND BY PROVIDER
+    async findByProvider(provider: 'local' | 'google', providerId: string): Promise<InMemoryUserProfile | null>{
+        for(const p of this.storage.values()){
+            if(p.provider === provider && p.providerId === providerId){
+                return p;
+            }
+        }
+
+        return null;
+    }
+
+    //CREATE USER
+    async create(
+        data: {
+            email: string,
+            username: string,
+            passwordHash?: string,
+            provider: 'local' | 'google',
+            providerId?: string
+        }
+    ): Promise<InMemoryUserProfile>{
         if(this.storage.has(data.email)){
             throw new AppError(409, `Account with ${data.email} email already exists.`);
         }
@@ -46,7 +74,13 @@ class InMemoryUserStore {
             }
         })
 
-        const profile = new InMemoryUserProfile(data.email, data.username, data.passwordHash);
+        const profile = new InMemoryUserProfile(
+            data.email,
+            data.username,
+            data.provider,
+            data.passwordHash,
+            data.providerId
+        );
 
         this.storage.set(profile.email, profile);
         return profile;

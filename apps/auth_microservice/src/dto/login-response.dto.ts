@@ -1,7 +1,7 @@
 import { UUID } from "crypto";
 
 export interface LoginResponseDTO{
-    id: UUID,
+    id: string,
     email: string,
     username: string
 }

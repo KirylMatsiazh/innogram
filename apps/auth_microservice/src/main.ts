@@ -9,6 +9,20 @@ import { AppError } from './error/app-error.js';
 import cookieParser from 'cookie-parser';
 import { randomBytes } from 'crypto';
 
+function setResponseCookie(response: Response, refreshToken: string): void{
+  response.cookie(
+    'refresh_token',
+    refreshToken,
+    {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 7 * 24 * 60 * 60 * 1000 //must match JWT_REFRESH_EXPIRES_IN
+    }
+  )
+}
+
+
 const app: Express = express();
 app.use(express.json());    //for parsing json from body
 
@@ -36,9 +50,11 @@ app.post(
   async (req: Request, res: Response) => {
     const dto = req.body as LoginDTO;
     const response = await authenticationService.login(dto);
+    setResponseCookie(res, response.refreshToken);
     res.status(200).json({
       message: "User logged in successfully",
-      user: response
+      user: response.user,
+      accessToken: response.accessToken
     });
   }
 );
@@ -115,14 +131,15 @@ app.get(
     }
 
     const result = await authenticationService.signInWithGoogle({ sub: payload.sub, email: payload.email });
+    setResponseCookie(res, result.refreshToken);
 
     res.json({ 
       message: 'Signed in with Google', 
-      user: result
+      user: result.user,
+      accessToken: result.accessToken
     })
   }
 );
-
 
 app.use(errorMiddleware);
 

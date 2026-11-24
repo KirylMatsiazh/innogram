@@ -1,12 +1,25 @@
 import { randomUUID } from "node:crypto";
-import { LoginResponseDTO } from "../dto/login-response.dto.js";
 import { LoginDTO } from "../dto/login.dto.js";
 import { RegisterDTO } from "../dto/register.dto.js";
 import { AppError } from "../error/app-error.js";
 import { userStore } from "../store/user.store.js";
 import { passwordUtil } from "../util/password.util.js";
+import { tokenUtil } from "../util/token.util.js";
+import { AuthResultDTO } from "../dto/auth-result.dto.js";
 
 const dummyHash = await passwordUtil.hashPassword('random-string');
+
+function buildAuthResult(account: { userId: string; email: string; username: string }): AuthResultDTO {
+    return {
+        user: { // account will hold a full user info including password hash, so not returning raw account
+            email: account.email,
+            username: account.username,
+            id: account.userId
+        },
+        accessToken: tokenUtil.createAccessToken(account.userId),
+        refreshToken: tokenUtil.createRefreshToken(account.userId)
+    }
+}
 
 class AuthenticationService{
 
@@ -25,7 +38,7 @@ class AuthenticationService{
         });
     }
 
-    async login(dto: LoginDTO): Promise<LoginResponseDTO>{
+    async login(dto: LoginDTO): Promise<AuthResultDTO>{
         const user = await userStore.findByEmail(dto.email);
 
         const hashToCompare = user?.passwordHash ?? dummyHash;
@@ -35,25 +48,17 @@ class AuthenticationService{
             throw new AppError(401, "Invalid credentials");
         }
 
-        return {
-            email: user.email,
-            username: user.username,
-            id: user.userId
-        }
+        return buildAuthResult(user);
     }
 
     //-------------------------GOOGLE---------------------------------
 
-    async signInWithGoogle(signInData: {sub: string, email: string}): Promise<LoginResponseDTO>{
+    async signInWithGoogle(signInData: {sub: string, email: string}): Promise<AuthResultDTO>{
         const lowerCaseEmail = signInData.email.toLowerCase();
         const googleUser = await userStore.findByProvider('google', signInData.sub);
 
         if(googleUser){
-            return {
-                email: googleUser.email,
-                username: googleUser.username,
-                id: googleUser.userId
-            }
+            return buildAuthResult(googleUser);
         }
         if(await userStore.findByEmail(lowerCaseEmail)){
             throw new AppError(409, 'An account with this email already exists. Sign in with your password.')
@@ -67,14 +72,9 @@ class AuthenticationService{
             providerId: signInData.sub
         }) 
 
-        return {
-            email: newUser.email,
-            username: newUser.username,
-            id: newUser.userId
-        }
+        return buildAuthResult(newUser);
         
     }
-
 }
 
 export const authenticationService = new AuthenticationService();

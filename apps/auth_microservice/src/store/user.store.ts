@@ -55,6 +55,17 @@ class InMemoryUserStore {
         return null;
     }
 
+    //FIND BY ID
+    async findById(userId: string): Promise<InMemoryUserProfile | null>{
+        for(const p of this.storage.values()){
+            if(p.userId == userId){
+                return p;
+            }
+        }
+
+        return null;
+    }
+
     //CREATE USER
     async create(
         data: {

@@ -56,6 +56,27 @@ class AuthenticationService{
         return buildAuthResult(user);
     }
 
+    async refresh(refreshToken: string): Promise<AuthResultDTO>{
+        const verifyRes = await tokenUtil.verifyRefreshToken(refreshToken);
+        if(!verifyRes){
+            throw new AppError(401, 'Invalid refresh token.');
+        }
+
+        const sessionTerminationRes = await sessionStore.remove(verifyRes.tokenId);
+        const targetUser = await userStore.findById(verifyRes.userId);
+
+        if(!sessionTerminationRes || !targetUser){
+            throw new AppError(401, 'Invalid refresh token.');
+        }
+
+        return buildAuthResult({
+            userId: targetUser.userId,
+            email: targetUser.email,
+            username: targetUser.username
+        })
+
+    }
+
     //-------------------------GOOGLE---------------------------------
 
     async signInWithGoogle(signInData: {sub: string, email: string}): Promise<AuthResultDTO>{

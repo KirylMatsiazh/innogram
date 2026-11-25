@@ -8,6 +8,7 @@ import { clientId, googleClient } from './config/google.js';
 import { AppError } from './error/app-error.js';
 import cookieParser from 'cookie-parser';
 import { randomBytes } from 'crypto';
+import { connectRedis } from './config/redis.js';
 
 function setResponseCookie(response: Response, refreshToken: string): void{
   response.cookie(
@@ -27,6 +28,8 @@ const app: Express = express();
 app.use(express.json());    //for parsing json from body
 
 app.use(cookieParser());
+
+await connectRedis();
 
 app.post(
   '/register',

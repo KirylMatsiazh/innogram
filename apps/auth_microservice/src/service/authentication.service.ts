@@ -6,10 +6,15 @@ import { userStore } from "../store/user.store.js";
 import { passwordUtil } from "../util/password.util.js";
 import { tokenUtil } from "../util/token.util.js";
 import { AuthResultDTO } from "../dto/auth-result.dto.js";
+import { sessionStore } from "../store/session.store.js";
 
 const dummyHash = await passwordUtil.hashPassword('random-string');
 
-function buildAuthResult(account: { userId: string; email: string; username: string }): AuthResultDTO {
+async function buildAuthResult(account: { userId: string; email: string; username: string }): Promise<AuthResultDTO> {
+    const refreshToken = tokenUtil.createRefreshToken(account.userId);
+
+    await sessionStore.save(refreshToken.tokenId, account.userId, refreshToken.expiresAt)
+
     return {
         user: { // account will hold a full user info including password hash, so not returning raw account
             email: account.email,
@@ -17,7 +22,7 @@ function buildAuthResult(account: { userId: string; email: string; username: str
             id: account.userId
         },
         accessToken: tokenUtil.createAccessToken(account.userId),
-        refreshToken: tokenUtil.createRefreshToken(account.userId)
+        refreshToken: refreshToken.token
     }
 }
 

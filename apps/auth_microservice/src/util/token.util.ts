@@ -18,7 +18,8 @@ class TokenUtil{
         return accessToken;
     }
 
-    createRefreshToken(userId: string): string{
+    createRefreshToken(userId: string): {token: string, tokenId: string, expiresAt: number}{
+        const jwtid = randomUUID();
         const refreshToken = jwt.sign(
             {},
             jwtConfig.refreshSecret,
@@ -26,11 +27,21 @@ class TokenUtil{
                 algorithm: "HS256",
                 expiresIn: jwtConfig.refreshExpiresIn,
                 subject: userId,
-                jwtid: randomUUID()
+                jwtid: jwtid
             }
         )
+        const jwtData = jwt.decode(refreshToken);
+        if(typeof jwtData !== 'object' || typeof jwtData?.exp !== 'number'){
+            throw new Error('jwtData is invalid');
+        }
 
-        return refreshToken;
+        const exp = jwtData.exp;
+
+        return {
+            token: refreshToken,
+            tokenId: jwtid,
+            expiresAt: exp
+        };
     }
 
     verifyAccessToken(token: string): { userId: string }{
